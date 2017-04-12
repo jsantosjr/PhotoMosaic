@@ -212,7 +212,7 @@ namespace PhotoMosaic
                 // We'll resize our loaded image so that we don't have to process as many pixels. The image will be downsized to a
                 // width of 50 pixels and its height will be re-adjusted so that it maintains its original aspect ratio.
                 Image resizedImage = Image;
-                int smallWidth = 100;
+                int smallWidth = 50;
                 int smallHeight = (Image.Height * smallWidth) / ((Image.Width > 0) ? Image.Width : 1);
                 if (smallWidth < Image.Width || smallHeight < Image.Height)
                     resizedImage = ImageProperty.ResizeImage(Image, smallWidth, smallHeight);
