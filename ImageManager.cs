@@ -60,6 +60,15 @@ namespace PhotoMosaic
         }
 
         /// <summary>
+        /// Notifies all observers of of the final progress step.
+        /// <param name="description">A description of the final progress step.</param>
+        /// </summary>
+        public void NotifyFinalProgressStep(string description)
+        {
+            _notifierImpl.NotifyFinalProgressStep(description);
+        }
+
+        /// <summary>
         /// Notifies all observers of an initial progress step.
         /// <param name="description">A description of the progress step.</param>
         /// </summary>
@@ -174,7 +183,8 @@ namespace PhotoMosaic
                     List<string> files = Directory.GetFiles(mosaicPath, "*", SearchOption.AllDirectories).Where(s => File.Exists(s) && ImageProperty.IsImage(s)).ToList();
 
                     // We'll want to notify observers of the number of total images to load.
-                    NotifyInitialProgressStep("Step 1/2: Loading Mosaic");
+                    string stepDescription = "Step 1/2: Loading Mosaic";
+                    NotifyInitialProgressStep(stepDescription);
                     for (int i = 0; i < files.Count; i++)
                     {
                         string filePath = files[i];
@@ -187,6 +197,7 @@ namespace PhotoMosaic
                     _mosaicProperties = mosaicProperties;
                     MosaicPath = mosaicPath;
                     retVal = true;
+                    NotifyFinalProgressStep(string.Format("{0} - Finished!", stepDescription));
                 }
             }
             catch (Exception)
@@ -218,7 +229,8 @@ namespace PhotoMosaic
                     resizedImage = ImageProperty.ResizeImage(Image, smallWidth, smallHeight);
 
                 // We'll then iterate though the pixels of the image and for each pixel, find an image that best matches the pixel's brightness.
-                NotifyInitialProgressStep("Step 2/2: Building Mosaic");
+                string stepDescription = "Step 2/2: Building Mosaic";
+                NotifyInitialProgressStep(stepDescription);
                 Bitmap resizedBitmap = new Bitmap(resizedImage);
                 int count = 0;
                 int numPixels = resizedBitmap.Height * resizedBitmap.Width;
@@ -246,6 +258,7 @@ namespace PhotoMosaic
                     }
                 }
                 Image = targetBitmap;
+                NotifyFinalProgressStep(string.Format("{0} - Finished!", stepDescription));
             }
             return retVal;
         }
@@ -297,10 +310,10 @@ namespace PhotoMosaic
         /// /// <param name="data">The directory path of the mosaic images.</param>
         private void OnProcessingThreadStarted(object data)
         {
-            string mosaicPath = (string)data;
-            ProcessImage(mosaicPath);
             try
             {
+                string mosaicPath = (string)data;
+                ProcessImage(mosaicPath);
                 Int32 unixTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
                 string directoryPath = Path.GetDirectoryName(ImagePath);
                 string fileName = string.Format("{0}_{1}.png", Path.GetFileNameWithoutExtension(ImagePath), unixTimestamp);

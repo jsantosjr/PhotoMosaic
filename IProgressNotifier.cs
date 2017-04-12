@@ -12,5 +12,6 @@ namespace PhotoMosaic
         bool RemoveObserver(IProgressObserver observer);
         void NotifyInitialProgressStep(string description);
         void NotifyProgressStep(string description, int stepNumber, int totalSteps);
+        void NotifyFinalProgressStep(string description);
     }
 }

@@ -8,6 +8,7 @@ namespace PhotoMosaic
 {
     public interface IProgressObserver
     {
+        void OnFinalProgressStep(string description);
         void OnInitialProgressStep(string description);
         void OnProgressStep(string description, int stepNumber, int totalSteps);
     }

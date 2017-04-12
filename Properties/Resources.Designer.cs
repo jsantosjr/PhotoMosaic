@@ -68,5 +68,14 @@ namespace PhotoMosaic.Properties {
                 return ResourceManager.GetString("FileNotLoadedMsg", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        public static string ProgressStepDescription {
+            get {
+                return ResourceManager.GetString("ProgressStepDescription", resourceCulture);
+            }
+        }
     }
 }

@@ -59,8 +59,20 @@ namespace PhotoMosaic
         }
 
         /// <summary>
+        /// Notifies all observers of of the final progress step.
+        /// <param name="description">A description of the final progress step.</param>
+        /// </summary>
+        public void NotifyFinalProgressStep(string description)
+        {
+            foreach (IProgressObserver observer in _observers)
+            {
+                observer.OnFinalProgressStep(description);
+            }
+        }
+
+        /// <summary>
         /// Notifies all observers of an initial progress step.
-        /// <param name="description">A description of the progress step.</param>
+        /// <param name="description">A description of the initial progress step.</param>
         /// </summary>
         public void NotifyInitialProgressStep(string description)
         {

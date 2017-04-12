@@ -9,8 +9,7 @@ namespace PhotoMosaic
     {
         #region Fields
         private ImageManager _imageManager;
-        private readonly string _imagePath = "C:\\Users\\Jose\\Desktop\\PhotoMosaic\\Images\\Source\\Picasso.png";
-        private readonly string _mosaicPath = "E:\\Jose\\Pictures\\Pet Pictures";
+        private delegate void HandleFinalProgressStepDelegate(string description);
         private delegate void HandleInitialProgressStepDelegate(string description);
         private delegate void HandleProgressStepDelegate(string imagePath, int imageOrder, int totalImageCount);
         #endregion
@@ -21,11 +20,30 @@ namespace PhotoMosaic
             InitializeComponent();
             _imageManager = new ImageManager();
             _imageManager.AddObserver(this);
-            LoadImage(_imagePath);
         }
         #endregion
 
         #region IProgressObserver Methods
+        /// <summary>
+        /// This method is called when the final progress step occurs.
+        /// <param name="description">A description of the final progress step.</param>
+        /// </summary>
+        public void OnFinalProgressStep(string description)
+        {
+            HandleFinalProgressStepDelegate method = new HandleFinalProgressStepDelegate(OnHandleFinalProgressStep);
+            Invoke(method, new object[] { description });
+        }
+        
+        /// <summary>
+        /// This method is called when an initial progress step occurs.
+        /// </summary>
+        /// <param name="description">A description of the progress step.</param>
+        public void OnInitialProgressStep(string description)
+        {
+            HandleInitialProgressStepDelegate method = new HandleInitialProgressStepDelegate(OnHandleInitialProgressStep);
+            Invoke(method, new object[] { description });
+        }
+
         /// <summary>
         /// This method is called when a progress step occurs.
         /// </summary>
@@ -36,16 +54,6 @@ namespace PhotoMosaic
         {
             HandleProgressStepDelegate method = new HandleProgressStepDelegate(OnHandleProgressStep);
             Invoke(method, new object[] { description, stepNumber, totalSteps });
-        }
-
-        /// <summary>
-        /// This method is called when an initial progress step occurs.
-        /// </summary>
-        /// <param name="description">A description of the progress step.</param>
-        public void OnInitialProgressStep(string description)
-        {
-            HandleInitialProgressStepDelegate method = new HandleInitialProgressStepDelegate(OnHandleInitialProgressStep);
-            Invoke(method, new object[] { description });
         }
         #endregion
         
@@ -63,7 +71,11 @@ namespace PhotoMosaic
                                         {"TIFF Files", "*.TIF;*.TIFF"},
                                         {"PNG Files",  "*.PNG"}};
             OpenFileDialog fileDialog = new OpenFileDialog();
-            fileDialog.InitialDirectory = Directory.GetCurrentDirectory();
+            if (_imageManager.ImagePath != null && File.Exists(_imageManager.ImagePath))
+                fileDialog.InitialDirectory = _imageManager.ImagePath;
+            else
+                fileDialog.InitialDirectory = Directory.GetCurrentDirectory();
+
             fileDialog.Multiselect = false;
             for (int i = 0; i < allowedFilters.GetLength(0); i++)
             {
@@ -87,29 +99,9 @@ namespace PhotoMosaic
             if (_imageManager.LoadImage(imagePath))
             {
                 _imageNameTxt.Text = Path.GetFileName(imagePath);
-                _imagePathTxt.Text = imagePath;
                 loaded = true;
             }
             return loaded;
-        }
-
-        /// <summary>
-        /// This method is called when the "Load Image" button is clicked. It takes care of displaying an
-        /// open file dialog, allowing the user to select an existing image file from the disk.
-        /// </summary>
-        /// <param name="sender">The sender of the click event.</param>
-        /// <param name="e">Event arguments.</param>
-        private void OnLoadImage(object sender, EventArgs e)
-        {
-            OpenFileDialog fileDialog = CreateOpenFileDialog();
-            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                string imagePath = fileDialog.FileName;
-                if (!LoadImage(imagePath))
-                {
-                    MessageBox.Show(string.Format(Properties.Resources.FileNotLoadedMsg, imagePath));
-                }
-            }
         }
 
         /// <summary>
@@ -135,6 +127,39 @@ namespace PhotoMosaic
                 {
                 }
             }
+            else
+            {
+                MessageBox.Show("Please select an image.", "Select Image");
+            }
+        }
+
+        /// <summary>
+        /// This method is called when the "Load Image" button is clicked. It takes care of displaying an
+        /// open file dialog, allowing the user to select an existing image file from the disk.
+        /// </summary>
+        /// <param name="sender">The sender of the click event.</param>
+        /// <param name="e">Event arguments.</param>
+        private void OnLoadImage(object sender, EventArgs e)
+        {
+            OpenFileDialog fileDialog = CreateOpenFileDialog();
+            if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                string imagePath = fileDialog.FileName;
+                if (!LoadImage(imagePath))
+                {
+                    MessageBox.Show(string.Format(Properties.Resources.FileNotLoadedMsg, imagePath));
+                }
+            }
+        }
+
+        /// <summary>
+        /// This method is called when the final progress step occurs.
+        /// <param name="description">A description of the final progress step.</param>
+        /// </summary>
+        public void OnHandleFinalProgressStep(string description)
+        {
+            _progressBarDescription.Visible = true;
+            _progressBarDescription.Text = (description != null) ? description : string.Empty;
         }
 
         /// <summary>
@@ -175,9 +200,61 @@ namespace PhotoMosaic
         /// <param name="e">Event arguments.</param>
         private void OnProcessImage(object sender, EventArgs e)
         {
-            if (_imageManager.Image != null)
+            if (_imageManager.Image == null)
+                MessageBox.Show("Please select an image.", "Select Image");
+            else if (string.IsNullOrEmpty(_mosaicPathTxt.Text))
+                MessageBox.Show("Please select a mosaic path.", "Select Mosaic Path");
+            else
+                _imageManager.Run(_mosaicPathTxt.Text);
+        }
+
+        /// <summary>
+        /// This method is called when the select image button is clicked. It takes care of displaying an
+        /// open file dialog, allowing the user to select an existing image file from the disk.
+        /// </summary>
+        /// <param name="sender">The sender of the click event.</param>
+        /// <param name="e">Event arguments.</param>
+        private void OnSelectImage(object sender, EventArgs e)
+        {
+            using (OpenFileDialog fileDialog = CreateOpenFileDialog())
             {
-                _imageManager.Run(_mosaicPath);
+                if (fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    string imagePath = fileDialog.FileName;
+                    if (!LoadImage(imagePath))
+                    {
+                        MessageBox.Show(string.Format(Properties.Resources.FileNotLoadedMsg, imagePath));
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// This method is called when the select mosaic image path button is clicked. It takes care of displaying an
+        /// open file dialog, allowing the user to select an existing path containing images that will be used to
+        /// build a mosaic.
+        /// </summary>
+        /// <param name="sender">The sender of the click event.</param>
+        /// <param name="e">Event arguments.</param>
+        private void OnSelectMosaicPath(object sender, EventArgs e)
+        {
+            try
+            {
+                using (FolderBrowserDialog folderDialog = new FolderBrowserDialog())
+                {
+                    if (_mosaicPathTxt.Text != null && Directory.Exists(_mosaicPathTxt.Text))
+                        folderDialog.SelectedPath = _mosaicPathTxt.Text;
+                    else
+                        folderDialog.SelectedPath = Directory.GetCurrentDirectory();
+
+                    if (folderDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        _mosaicPathTxt.Text = folderDialog.SelectedPath;
+                    }
+                }
+            }
+            catch (Exception)
+            {
             }
         }
         #endregion
