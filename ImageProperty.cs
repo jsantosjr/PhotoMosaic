@@ -26,7 +26,9 @@ namespace PhotoMosaic
             Path = imagePath;
             AverageBrightness = GetAverageBrightness(imagePath);
         }
+        #endregion
 
+        #region Methods
         /// <summary>
         /// Returns the average brightness of the specified image.
         /// </summary>
