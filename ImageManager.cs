@@ -237,6 +237,7 @@ namespace PhotoMosaic
                 int cellWidth = (smallWidth > 0) ? (Image.Width / smallWidth) : 1;
                 int cellHeight = (smallHeight > 0) ? (Image.Height / smallHeight) : 1;
                 Bitmap targetBitmap = new Bitmap(cellWidth * smallWidth, cellHeight * smallHeight);
+                Dictionary<string, Tuple<int, int>> cachedImageCoords = new Dictionary<string, Tuple<int, int>>();
                 for (int x = 0; x < resizedBitmap.Width; x++)
                 {
                     for (int y = 0; y < resizedBitmap.Height; y++)
@@ -245,18 +246,33 @@ namespace PhotoMosaic
                         ImageProperty property = FindMosaicImage(color.GetBrightness());
                         if (property != null)
                         {
-                            Image mosaicImage = Image.FromFile(property.Path);
-                            Bitmap mosaicBitmap = new Bitmap(mosaicImage, cellWidth, cellHeight);
                             using (Graphics graphics = Graphics.FromImage(targetBitmap))
                             {
-                                graphics.DrawImage(mosaicBitmap, x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+                                Image smallImage;
+                                int xPos = x * cellWidth;
+                                int yPos = y * cellHeight;
+                                if (cachedImageCoords.ContainsKey(property.Path))
+                                {
+                                    // Since we've already encountered the small image, instead of loading it from a file, we'll
+                                    // simply retrieve a region from the destination mosaic image that contains the small image.
+                                    int cachedXPos = cachedImageCoords[property.Path].Item1;
+                                    int cachedYPos = cachedImageCoords[property.Path].Item2;
+                                    Rectangle imageRect = new Rectangle(cachedXPos, cachedYPos, cellWidth, cellHeight);
+                                    smallImage = targetBitmap.Clone(imageRect, targetBitmap.PixelFormat);
+                                }
+                                else
+                                {
+                                    smallImage = Image.FromFile(property.Path);
+                                    cachedImageCoords[property.Path] = new Tuple<int, int>(xPos, yPos);
+                                }
+                                graphics.DrawImage(smallImage, xPos, yPos, cellWidth, cellHeight);
+                                smallImage.Dispose();
                             }
-                            mosaicImage.Dispose();
-                            mosaicBitmap.Dispose();
                             NotifyProgressStep(property.Path, ++count, numPixels);
                         }
                     }
                 }
+                Image.Dispose();
                 Image = targetBitmap;
                 NotifyFinalProgressStep(string.Format("{0} - Finished!", stepDescription));
             }
