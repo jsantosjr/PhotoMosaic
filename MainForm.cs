@@ -134,6 +134,16 @@ namespace PhotoMosaic
         }
 
         /// <summary>
+        /// This method is called after the main form loads.
+        /// </summary>
+        /// <param name="sender">The sender of the load event.</param>
+        /// <param name="e">Event arguments.</param>
+        private void OnFormLoad(object sender, EventArgs e)
+        {
+            _adjustColorsTtp.SetToolTip(_adjustColorsCkb, "Selecting this option will cause mosaic images to be colored on the source image. This will affect performance of the processing logic.");
+        }
+
+        /// <summary>
         /// This method is called when the "Load Image" button is clicked. It takes care of displaying an
         /// open file dialog, allowing the user to select an existing image file from the disk.
         /// </summary>
@@ -205,7 +215,7 @@ namespace PhotoMosaic
             else if (string.IsNullOrEmpty(_mosaicPathTxt.Text))
                 MessageBox.Show("Please select a mosaic path.", "Select Mosaic Path");
             else
-                _imageManager.Run(_mosaicPathTxt.Text);
+                _imageManager.Run(_adjustColorsCkb.Checked, _mosaicPathTxt.Text);
         }
 
         /// <summary>

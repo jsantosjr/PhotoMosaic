@@ -10,7 +10,7 @@ namespace PhotoMosaic
     {
         #region Properties
         /// <summary>
-        /// Gets the brightness of the stored image.
+        /// Gets the average brightness of the stored image.
         /// </summary>
         public float AverageBrightness { get; private set; }
 
@@ -29,6 +29,22 @@ namespace PhotoMosaic
         #endregion
 
         #region Methods
+        /// <summary>
+        /// Adjusts the passed in color so that it assumes the passed in brightness.
+        /// </summary>
+        /// <param name="brightness">The new brightness of the passed in color.</param>
+        /// <returns>The new color after it has been adjusted.</returns>
+        public static Color GetAdjustedColor(Color color, float brightness)
+        {
+            Color adjustedColor = color;
+            if (color != null && brightness >= 0.0 && brightness <= 1.0)
+            {
+                RGB rgbValues = new RGB((int)(color.R * brightness), (int)(color.G * brightness), (int)(color.B * brightness));
+                adjustedColor = Color.FromArgb(rgbValues.Red, rgbValues.Green, rgbValues.Blue);
+            }
+            return adjustedColor;
+        }
+
         /// <summary>
         /// Returns the average brightness of the specified image.
         /// </summary>
@@ -101,8 +117,56 @@ namespace PhotoMosaic
                     }
                 }
             }
-
             return retVal;
+        }
+
+        /// <summary>
+        /// Recolors each pixel of the passed in image to the specified color.
+        /// </summary>
+        /// <param name="original">The image to recolor.</param>
+        /// <param name="color">The new color of each image pixel.</param>
+        /// <returns></returns>
+        public static unsafe void RecolorImage(Bitmap original, Color color)
+        {
+            try
+            {
+                if (original != null)
+                {
+                    BitmapData imageData = original.LockBits(new Rectangle(0, 0, original.Width, original.Height), ImageLockMode.ReadWrite, PixelFormat.Format24bppRgb);
+                    byte* firstScanLine = (byte*)imageData.Scan0.ToPointer();
+                    int scanLineWidth = imageData.Stride;
+                    int bitsPerPixel = 3;
+
+                    for (int y = 0; y < imageData.Height; y++)
+                    {
+                        byte* currentScanLine = firstScanLine + (scanLineWidth * y);
+                        for (int x = 0; x < imageData.Width; x++)
+                        {
+                            ////////////////////////////////////////////////////////////////////////////////////////////
+                            // Note that each element in the current scan line contains 24 bits. This means that each
+                            // segment of 8 bits will correspond to a red, green, or blue value. The 8 bit segments
+                            // hold the following values,
+                            //
+                            //  - 1st 8 bits = blue value
+                            //  - 2nd 8 bits = green value
+                            //  - 3rd 8 bits = red value
+                            ////////////////////////////////////////////////////////////////////////////////////////////
+                            int blueIndex  = x * bitsPerPixel;
+                            int greenIndex = blueIndex + 1;
+                            int redIndex   = blueIndex + 2;
+                            Color originalColor = Color.FromArgb(currentScanLine[redIndex], currentScanLine[greenIndex], currentScanLine[blueIndex]);
+                            Color adjustedColor = GetAdjustedColor(color, originalColor.GetBrightness() + 0.2f);
+                            currentScanLine[redIndex]   = adjustedColor.R;
+                            currentScanLine[greenIndex] = adjustedColor.G;
+                            currentScanLine[blueIndex]  = adjustedColor.B;
+                        }
+                    }
+                    original.UnlockBits(imageData);
+                }
+            }
+            catch (Exception)
+            {
+            }
         }
 
         /// <summary>

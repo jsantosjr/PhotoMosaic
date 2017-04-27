@@ -9,6 +9,34 @@ using System.Linq;
 
 namespace PhotoMosaic
 {
+    public class ProcessParameters
+    {
+        #region Properties
+        /// <summary>
+        /// Gets and sets the bool value that determines whether or not colors should be adjusted.
+        /// </summary>
+        public bool AdjustColors { get; set; }
+
+        /// <summary>
+        /// Gets and sets the path of an image.
+        /// </summary>
+        public string ImagePath { get; set; }
+        #endregion
+
+        #region Constructor
+        /// <summary>
+        /// Creates a ProcessParameters instance.
+        /// </summary>
+        /// <param name="adjustColors">A value that determines whether or not colors should be adjusted.</param>
+        /// <param name="imagePath">The path of an image.</param>
+        public ProcessParameters(bool adjustColors, string imagePath)
+        {
+            AdjustColors = adjustColors;
+            ImagePath = imagePath;
+        }
+        #endregion
+    }
+
     public class ImageManager : IProgressNotifier
     {
         #region Fields
@@ -211,7 +239,7 @@ namespace PhotoMosaic
         /// Processes the loaded image and turns it into a mosaic composed of smaller images.
         /// </summary>
         /// <param name="mosaicPath">The directory path of the mosaic images.</param>
-        public bool ProcessImage(string mosaicPath)
+        public bool ProcessImage(bool adjustColors, string mosaicPath)
         {
             bool retVal = false;
 
@@ -265,6 +293,9 @@ namespace PhotoMosaic
                                     smallImage = Image.FromFile(property.Path);
                                     cachedImageCoords[property.Path] = new Tuple<int, int>(xPos, yPos);
                                 }
+
+                                if (adjustColors)
+                                    ImageProperty.RecolorImage((Bitmap)smallImage, color);
                                 graphics.DrawImage(smallImage, xPos, yPos, cellWidth, cellHeight);
                                 smallImage.Dispose();
                             }
@@ -305,14 +336,15 @@ namespace PhotoMosaic
         /// Triggers a worker thread that takes care of processing the loaded image.
         /// </summary>
         /// <param name="mosaicPath">The path of the mosaic images.</param>
-        public void Run(string mosaicPath)
+        public void Run(bool adjustColors, string mosaicPath)
         {
             try
             {
                 if (!_processingThread.IsAlive)
                 {
+                    ProcessParameters parameters = new ProcessParameters(adjustColors, mosaicPath);
                     _processingThread = new Thread(OnProcessingThreadStarted);
-                    _processingThread.Start(mosaicPath);
+                    _processingThread.Start(parameters);
                 }
             }
             catch (Exception)
@@ -328,8 +360,8 @@ namespace PhotoMosaic
         {
             try
             {
-                string mosaicPath = (string)data;
-                ProcessImage(mosaicPath);
+                ProcessParameters parameters = (ProcessParameters)data;
+                ProcessImage(parameters.AdjustColors, parameters.ImagePath);
                 Int32 unixTimestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
                 string directoryPath = Path.GetDirectoryName(ImagePath);
                 string fileName = string.Format("{0}_{1}.png", Path.GetFileNameWithoutExtension(ImagePath), unixTimestamp);

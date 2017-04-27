@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this._displayImageBtn = new System.Windows.Forms.Button();
             this._imageNameTxt = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -40,6 +41,8 @@
             this._progressBar = new System.Windows.Forms.ToolStripProgressBar();
             this._selectImageBtn = new System.Windows.Forms.Button();
             this._selectMosaicImagePath = new System.Windows.Forms.Button();
+            this._adjustColorsCkb = new System.Windows.Forms.CheckBox();
+            this._adjustColorsTtp = new System.Windows.Forms.ToolTip(this.components);
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -47,7 +50,7 @@
             // 
             this._displayImageBtn.Location = new System.Drawing.Point(93, 76);
             this._displayImageBtn.Name = "_displayImageBtn";
-            this._displayImageBtn.Size = new System.Drawing.Size(92, 29);
+            this._displayImageBtn.Size = new System.Drawing.Size(85, 29);
             this._displayImageBtn.TabIndex = 1;
             this._displayImageBtn.Text = "Display Image";
             this._displayImageBtn.UseVisualStyleBackColor = true;
@@ -92,9 +95,9 @@
             // 
             // _processImageBtn
             // 
-            this._processImageBtn.Location = new System.Drawing.Point(191, 76);
+            this._processImageBtn.Location = new System.Drawing.Point(184, 76);
             this._processImageBtn.Name = "_processImageBtn";
-            this._processImageBtn.Size = new System.Drawing.Size(92, 29);
+            this._processImageBtn.Size = new System.Drawing.Size(85, 29);
             this._processImageBtn.TabIndex = 6;
             this._processImageBtn.Text = "Process Image";
             this._processImageBtn.UseVisualStyleBackColor = true;
@@ -106,7 +109,7 @@
             this._progressBarDescription,
             this._progressBarPercent,
             this._progressBar});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 113);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 112);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.statusStrip1.Size = new System.Drawing.Size(384, 22);
@@ -161,11 +164,30 @@
             this._selectMosaicImagePath.UseVisualStyleBackColor = true;
             this._selectMosaicImagePath.Click += new System.EventHandler(this.OnSelectMosaicPath);
             // 
+            // _adjustColorsCkb
+            // 
+            this._adjustColorsCkb.AutoSize = true;
+            this._adjustColorsCkb.Location = new System.Drawing.Point(284, 83);
+            this._adjustColorsCkb.Name = "_adjustColorsCkb";
+            this._adjustColorsCkb.Size = new System.Drawing.Size(87, 17);
+            this._adjustColorsCkb.TabIndex = 10;
+            this._adjustColorsCkb.Text = "Adjust Colors";
+            this._adjustColorsCkb.UseVisualStyleBackColor = true;
+            // 
+            // _adjustColorsTtp
+            // 
+            this._adjustColorsTtp.AutoPopDelay = 10000;
+            this._adjustColorsTtp.InitialDelay = 500;
+            this._adjustColorsTtp.ReshowDelay = 100;
+            this._adjustColorsTtp.Tag = "";
+            this._adjustColorsTtp.ToolTipTitle = "Adjust Colors";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(384, 135);
+            this.ClientSize = new System.Drawing.Size(384, 134);
+            this.Controls.Add(this._adjustColorsCkb);
             this.Controls.Add(this._selectMosaicImagePath);
             this.Controls.Add(this._selectImageBtn);
             this.Controls.Add(this.statusStrip1);
@@ -179,6 +201,7 @@
             this.MaximizeBox = false;
             this.Name = "MainForm";
             this.Text = "Photo Mosaic";
+            this.Load += new System.EventHandler(this.OnFormLoad);
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
@@ -200,6 +223,8 @@
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.Button _selectImageBtn;
         private System.Windows.Forms.Button _selectMosaicImagePath;
+        private System.Windows.Forms.CheckBox _adjustColorsCkb;
+        private System.Windows.Forms.ToolTip _adjustColorsTtp;
     }
 }
 
