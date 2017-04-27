@@ -135,7 +135,7 @@ namespace PhotoMosaic
                     BitmapData imageData = original.LockBits(new Rectangle(0, 0, original.Width, original.Height), ImageLockMode.ReadWrite, PixelFormat.Format24bppRgb);
                     byte* firstScanLine = (byte*)imageData.Scan0.ToPointer();
                     int scanLineWidth = imageData.Stride;
-                    int bitsPerPixel = 3;
+                    int bytesPerPixel = 3;
 
                     for (int y = 0; y < imageData.Height; y++)
                     {
@@ -151,7 +151,7 @@ namespace PhotoMosaic
                             //  - 2nd 8 bits = green value
                             //  - 3rd 8 bits = red value
                             ////////////////////////////////////////////////////////////////////////////////////////////
-                            int blueIndex  = x * bitsPerPixel;
+                            int blueIndex  = x * bytesPerPixel;
                             int greenIndex = blueIndex + 1;
                             int redIndex   = blueIndex + 2;
                             Color originalColor = Color.FromArgb(currentScanLine[redIndex], currentScanLine[greenIndex], currentScanLine[blueIndex]);
